@@ -170,9 +170,10 @@ module.exports = async (req, res) => {
     reservationTime: reservationTime,
     planName: reservation.packages[0].products[0].name,
     planPrice: reservation.packages[0].amount,
+    finished: false,
   });
 
-  // 予約数を更新する
+  // 予約数,売り上げを更新する
   const [year, month, day] = reservationTime.split(" ")[0].split("-");
   const bookingData = await database
     .collection("booking")
@@ -184,12 +185,15 @@ module.exports = async (req, res) => {
     const arr2 = bookingData.data().max;
     const [hour, _] = reservationTime.split(" ")[1].split(":");
     arr2[parseInt(day, 10) - 1][hour + "時台"][1]--;
+    const arr3 = bookingData.data().sales;
+    arr3[parseInt(day, 10) - 1] += reservation.packages[0].amount;
     database
       .collection("booking")
       .doc(year + "-" + month)
       .update({
         current: arr,
         max: arr2,
+        sales: arr3,
       });
   }
 };
