@@ -186,7 +186,7 @@ module.exports = async (req, res) => {
     const [hour, _] = reservationTime.split(" ")[1].split(":");
     arr2[parseInt(day, 10) - 1][hour + "時台"][1]--;
     const arr3 = bookingData.data().sales;
-    arr3[parseInt(day, 10) - 1] += reservation.packages[0].amount;
+    arr3[parseInt(day, 10) - 1] += parseInt(reservation.packages[0].amount, 10);
     database
       .collection("booking")
       .doc(year + "-" + month)

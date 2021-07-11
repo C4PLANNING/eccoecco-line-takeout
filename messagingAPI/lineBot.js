@@ -196,10 +196,24 @@ async function handleEvent(event, session) {
                   layout: "vertical",
                   spacing: "sm",
                   contents: [
+                    {
+                      type: "text",
+                      text: "ランチタイム",
+                      size: "md",
+                      margin: "md",
+                      wrap: true,
+                    },
                     ...buttons,
                     {
                       type: "separator",
                       margin: "xxl",
+                    },
+                    {
+                      type: "text",
+                      text: "ディナータイム",
+                      size: "md",
+                      margin: "md",
+                      wrap: true,
                     },
                     ...buttons2,
                   ],
@@ -1115,9 +1129,8 @@ async function handleEvent(event, session) {
                 },
                 {
                   type: "box",
-                  layout: "vertical",
-                  margin: "xxl",
-                  spacing: "sm",
+                  layout: "horizontal",
+                  spacing: "md",
                   contents: [
                     {
                       type: "text",

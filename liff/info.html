@@ -1,22 +1,39 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8" />
     <meta content="width=device-width,initial-scale=1" name="viewport" />
     <!-- Bootstrap -->
-    <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="//stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="//stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-firestore.js"></script>
 
 
-    <link rel="stylesheet" href="/style.css" >
+    <link rel="stylesheet" href="/style.css">
     <title>申込情報を入力</title>
     <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
     <script>
+
+        // const firebaseConfig = {
+        //     apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+        //     authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+        //     projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+        //     storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+        //     messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+        //     appId: process.env.REACT_APP_FIREBASE_APP_ID,
+        //     measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
+        // };
         const firebaseConfig = {
             apiKey: "AIzaSyBdsDtEvTLH8JKcfRpuPR15eGtoYGiD2qE",
             authDomain: "eccoecco-line-takeout.firebaseapp.com",
@@ -32,11 +49,11 @@
             // APIからLIFF IDのJSONを取得する
             fetch('./info')
                 .then((response) => response.json())
-                .then(function(jsonResponse) {
+                .then(function (jsonResponse) {
                     myLiffId = jsonResponse.id;
                     initializeLiff(myLiffId);
                 })
-                
+
             // sendにclickイベントを追加
             document.getElementById('send').addEventListener('click', async function () {
                 var name = $("input[name='name']").val();
@@ -48,7 +65,7 @@
                 // LIFFアプリをLINE内ブラウザで動作させているかどうかを取得します。
                 if (!liff.isInClient()) {
                     window.alert('LIFFは現在外部ブラウザで開いているため、このボタンは使用できません。');
-                } else if (!name || !number || !date ) {
+                } else if (!name || !number || !date) {
                     window.alert('全てに入力をお願いします。');
                 } else if (date < min || date > max) {
                     window.alert('本日から１週間以内でお願いいたします。');
@@ -57,33 +74,33 @@
                 } else {
 
                     const database = firebase.firestore();
-                    
+
                     const profile = await liff.getProfile();
                     database
                         .collection("user")
                         .doc(profile.userId)
                         .set({ userId: profile.userId, name: name, tel: number, reservationDate: date });
-                   
+
                     let text = "お申し込み\n" +
-                      "--------\n" +
-                      "お名前: " + name + "\n" +
-                      "電話番号: " + number + "\n" +
-                      "受け取り日: " + replaceAll(date, "-", "/");
-                      
+                        "--------\n" +
+                        "お名前: " + name + "\n" +
+                        "電話番号: " + number + "\n" +
+                        "受け取り日: " + replaceAll(date, "-", "/");
+
                     // トーク画面にメッセージを送信します。
                     liff.sendMessages([{
                         'type': 'text',
                         'text': text
-                    }]).then(function() {
+                    }]).then(function () {
                         liff.closeWindow()
-                    }).catch(function(error) {
+                    }).catch(function (error) {
                         window.alert('エラー送信: ' + error);
                     });
                 }
             });
         };
-      
-        function initializeLiff(myLiffId) { 
+
+        function initializeLiff(myLiffId) {
             // LIFFアプリを初期化
             liff.init(
                 {
@@ -95,19 +112,19 @@
                         liff.login();
                     }
                     // ユーザーのプロフィールを取得します。
-                    liff.getProfile().then(function(profile) {
+                    liff.getProfile().then(function (profile) {
                         $("input[name='name']").val(profile.displayName);
                     })
-                    .catch(function(error) {
-                        window.alert('プロファイル取得のエラー: ' + error);
-                    });
+                        .catch(function (error) {
+                            window.alert('プロファイル取得のエラー: ' + error);
+                        });
                 })
                 .catch((error) => {
                     window.alert('初期化のエラー: ' + error);
                 });
         }
-        
-        function replaceAll(str, beforeStr, afterStr){
+
+        function replaceAll(str, beforeStr, afterStr) {
             var reg = new RegExp(beforeStr, "g");
             return str.replace(reg, afterStr);
         }
@@ -118,23 +135,26 @@
         }
     </script>
 </head>
+
 <body>
-<!-- 申し込みに必要な情報を入力 -->
-<div class="container">
-    <form>
-        <div class="form-group">
-            <label for="name">お名前</label>
-            <input id="name" type="text" name="name" class="form-control" placeholder="名前を入力して下さい" required="required" />
-        </div>
-        <div class="form-group">
-            <label for="number">電話番号</label>
-            <input id="number" type="tel" class="form-control" name="number" required="required" />
-        </div>
-        <div class="form-group">
-            <label for="date">受け取り日時</label>
-            <input id="date" type="date" name="date" class="form-control" placeholder="日付を入力して下さい" min="1" max="10" required="required" />
-        </div>
-        <button id="send" class="btn btn-primary btn-lg btn-block" type="button">申込</button>
-    </form>
-</div>
+    <!-- 申し込みに必要な情報を入力 -->
+    <div class="container">
+        <form>
+            <div class="form-group">
+                <label for="name">お名前</label>
+                <input id="name" type="text" name="name" class="form-control" placeholder="名前を入力して下さい"
+                    required="required" />
+            </div>
+            <div class="form-group">
+                <label for="number">電話番号</label>
+                <input id="number" type="tel" class="form-control" name="number" required="required" />
+            </div>
+            <div class="form-group">
+                <label for="date">受け取り日時</label>
+                <input id="date" type="date" name="date" class="form-control" placeholder="日付を入力して下さい" min="1" max="10"
+                    required="required" />
+            </div>
+            <button id="send" class="btn btn-primary btn-lg btn-block" type="button">申込</button>
+        </form>
+    </div>
 </body>
