@@ -187,7 +187,7 @@ async function handleEvent(event, session) {
                     },
                     {
                       type: "separator",
-                      margin: "xxl",
+                      margin: "md",
                     },
                   ],
                 },

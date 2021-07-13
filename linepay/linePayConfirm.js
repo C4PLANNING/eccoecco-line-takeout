@@ -21,7 +21,7 @@ const config = {
 const pay = new line_pay({
   channelId: process.env.LINEPAY_CHANNEL_ID || "test",
   channelSecret: process.env.LINEPAY_CHANNEL_SECRET || "test",
-  isSandbox: true,
+  // isSandbox: true,
 });
 
 const client = new line.Client(config);
@@ -61,6 +61,7 @@ module.exports = async (req, res) => {
   console.log(confirmation);
 
   pay.confirm(confirmation).then(async (response) => {
+    console.log(response)
     await client.pushMessage(reservation.userid, [
       {
         type: "flex",
@@ -162,9 +163,12 @@ module.exports = async (req, res) => {
     reservationTime = userData.reservationTime;
   });
 
-  await database.collection("transaction").doc(reservation.transactionId).set({
+  const now = new Date(new Date().getTime() + 3600000 * 9);
+  const key = now.getFullYear() + "-" + ("0" + (parseInt(now.getMonth(), 10) + 1)).slice(-2);
+  await database.collection("transaction").doc("monthly").collection(key).doc(reservation.transactionId).set({
     userId: reservation.userid,
-    timestamp: new Date(),
+    createdAt: ("0" + (parseInt(now.getMonth(), 10) + 1)).slice(-2) + "/" + now.getDate() + " " + ("0" + parseInt(now.getHours(), 10)).slice(-2) + ":" + ("0" + parseInt(now.getMinutes(), 10)).slice(-2),
+    timestamp: now,
     userName: profile.displayName,
     userTel: tel,
     reservationTime: reservationTime,

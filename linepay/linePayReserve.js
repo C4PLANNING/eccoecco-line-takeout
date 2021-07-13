@@ -15,7 +15,7 @@ const line_pay = require("./linePay.js");
 const pay = new line_pay({
   channelId: process.env.LINEPAY_CHANNEL_ID || "test",
   channelSecret: process.env.LINEPAY_CHANNEL_SECRET || "test",
-  isSandbox: true,
+  // isSandbox: true,
 });
 const nameLimit = 90;
 
@@ -39,13 +39,14 @@ module.exports = async (req, res) => {
 
   // Generate order information
   const options = {
-    amount: planPrice.substring(1),
+    amount: parseInt(planPrice.substring(1), 10),
     currency: "JPY",
     orderId: uuid(),
+    options: { payment: { capture: true } }, // confirm時にcaptureする
     packages: [
       {
         id: uuid(),
-        amount: planPrice.substring(1),
+        amount: parseInt(planPrice.substring(1), 10),
         name:
           displayCount(planName).length <= nameLimit
             ? displayCount(planName)
@@ -56,7 +57,7 @@ module.exports = async (req, res) => {
             name: displayCount(planName),
             imageUrl: process.env.BASE_URL + planImageUrl[0],
             quantity: 1,
-            price: planPrice.substring(1),
+            price: parseInt(planPrice.substring(1), 10),
           },
         ],
       },
