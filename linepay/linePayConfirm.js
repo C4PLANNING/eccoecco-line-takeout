@@ -61,7 +61,7 @@ module.exports = async (req, res) => {
   console.log(confirmation);
 
   pay.confirm(confirmation).then(async (response) => {
-    console.log(response)
+    console.log(response);
     await client.pushMessage(reservation.userid, [
       {
         type: "flex",
@@ -151,31 +151,48 @@ module.exports = async (req, res) => {
 
   const user = await database
     .collection("user")
-    .where("name", "==", profile.displayName)
+    .where("userId", "==", profile.userId)
     .get();
 
   var tel = "";
   var reservationTime = "";
+  var name = "";
 
   user.docs.map((elem) => {
     const userData = elem.data();
     tel = userData.tel;
+    name = userData.name;
     reservationTime = userData.reservationTime;
   });
 
   const now = new Date(new Date().getTime() + 3600000 * 9);
-  const key = now.getFullYear() + "-" + ("0" + (parseInt(now.getMonth(), 10) + 1)).slice(-2);
-  await database.collection("transaction").doc("monthly").collection(key).doc(reservation.transactionId).set({
-    userId: reservation.userid,
-    createdAt: ("0" + (parseInt(now.getMonth(), 10) + 1)).slice(-2) + "/" + now.getDate() + " " + ("0" + parseInt(now.getHours(), 10)).slice(-2) + ":" + ("0" + parseInt(now.getMinutes(), 10)).slice(-2),
-    timestamp: now,
-    userName: profile.displayName,
-    userTel: tel,
-    reservationTime: reservationTime,
-    planName: reservation.packages[0].products[0].name,
-    planPrice: reservation.packages[0].amount,
-    finished: false,
-  });
+  const key =
+    now.getFullYear() +
+    "-" +
+    ("0" + (parseInt(now.getMonth(), 10) + 1)).slice(-2);
+  await database
+    .collection("transaction")
+    .doc("monthly")
+    .collection(key)
+    .doc(reservation.transactionId)
+    .set({
+      userId: reservation.userid,
+      createdAt:
+        ("0" + (parseInt(now.getMonth(), 10) + 1)).slice(-2) +
+        "/" +
+        now.getDate() +
+        " " +
+        ("0" + parseInt(now.getHours(), 10)).slice(-2) +
+        ":" +
+        ("0" + parseInt(now.getMinutes(), 10)).slice(-2),
+      timestamp: now,
+      userName: name,
+      userTel: tel,
+      reservationTime: reservationTime,
+      planName: reservation.packages[0].products[0].name,
+      planPrice: reservation.packages[0].amount,
+      finished: false,
+    });
 
   // 予約数,売り上げを更新する
   const [year, month, day] = reservationTime.split(" ")[0].split("-");
