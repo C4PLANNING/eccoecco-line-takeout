@@ -1,17 +1,75 @@
 .image-wrapper {
-    width: 100%;
+  width: 100%;
 }
 .image-wrapper img {
-    width: 100%;
+  width: 100%;
 }
 .wrapper {
-    margin: 12px 6px 0 6px;
+  margin: 12px 6px 0 6px;
 }
 
 .title {
-    color: #171e7f;
-    padding: 0 0 6px 0;
-    font-size: 1.1em;
-    font-weight: bold;
-    text-align: center;
+  color: #171e7f;
+  padding: 0 0 6px 0;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-align: center;
+}
+
+.f-container {
+  display: flex;
+}
+
+.styled-select {
+  /* 👇デフォルトのスタイルを解除 */
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  /* 👇スタイル */
+  display: inline-block;
+  width: 100%; /* 幅 */
+  margin: 1em 0; /* 前後の余白 */
+  padding: 0.6em 1.5em 0.6em 0.5em; /* 文字周りの余白 */
+  cursor: pointer; /* カーソルを指に */
+  line-height: 1.4; /* 行高 */
+  font-size: 0.95em; /* フォントサイズ */
+  font-weight: 700; /* 太字に */
+  color: #333; /* 文字色 */
+  border-radius: 4px; /* 角丸 */
+  background-color: #f7f9fb; /* 背景色 */
+  border: solid 1px #e1e8ef; /* 枠線 */
+  box-shadow: 0 3px 3px -2px rgba(3, 29, 41, 0.15); /* 影 */
+  /* 👇三角マークを作る */
+  background-image: linear-gradient(
+      45deg,
+      transparent 50%,
+      rgba(0, 0, 0, 0.4) 50%
+    ),
+    linear-gradient(135deg, rgba(0, 0, 0, 0.4) 50%, transparent 50%);
+  background-size: 5px 5px, 5px 5px;
+  background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+}
+/* フォーカス時 */
+.styled-select:focus {
+  outline: 0;
+  border-color: #b0c5ff; /* 枠線の色を変更 */
+}
+/* IEでデフォルトの矢印を消す */
+.styled-select::-ms-expand {
+  display: none;
+}
+
+.last td:last-child {
+  border-bottom: solid 1px #ccc;
+  width: 100%;
+}
+.commerce {
+  width: 80%;
+}
+.commerce th,
+.commerce td {
+  border-bottom: none;
+  display: block;
+  width: 100%;
 }

@@ -44,7 +44,10 @@
             measurementId: "G-70RJ90MCQP",
         };
         firebase.initializeApp(firebaseConfig);
-        window.onload = function (e) {
+        const database = firebase.firestore();
+
+        window.onload = async function (e) {
+            const result = await addDate();
             let myLiffId = "";
             // APIからLIFF IDのJSONを取得する
             fetch('./info')
@@ -58,17 +61,14 @@
             document.getElementById('send').addEventListener('click', async function () {
                 var name = $("input[name='name']").val();
                 var number = $("input[name='number']").val();
-                var date = $("input[name='date']").val();
-                var min = zeroPadding(new Date().toLocaleDateString());
-                var max = zeroPadding(new Date(new Date().getTime() + 86400000 * 7).toLocaleDateString());
+                var date = $("select[name='date']").val();
+                var time = $("select[name='time']").val();
                 const regex = /^0\d{9,10}$/;
                 // LIFFアプリをLINE内ブラウザで動作させているかどうかを取得します。
                 if (!liff.isInClient()) {
                     window.alert('LIFFは現在外部ブラウザで開いているため、このボタンは使用できません。');
-                } else if (!name || !number || !date) {
+                } else if (!name || !number || !date || !time || time === "時間を選択") {
                     window.alert('全てに入力をお願いします。');
-                } else if (date < min || date > max) {
-                    window.alert('本日から１週間以内でお願いいたします。');
                 } else if (!regex.test(number.replace(/[━.*‐.*―.*－.*\-.*ー.*\-]/gi, ''))) {
                     window.alert('正しい携帯番号（電話番号）を入力してください');
                 } else {
@@ -76,16 +76,12 @@
                     const database = firebase.firestore();
 
                     const profile = await liff.getProfile();
-                    database
+                    await database
                         .collection("user")
                         .doc(profile.userId)
-                        .set({ userId: profile.userId, name: name, tel: number, reservationDate: date });
+                        .set({ userId: profile.userId, name: name, tel: number, reservationDate: date.replaceAll("/", "-"), reservationTime: date.replaceAll("/", "-") + " " + time });
 
-                    let text = "お申し込み\n" +
-                        "--------\n" +
-                        "お名前: " + name + "\n" +
-                        "電話番号: " + number + "\n" +
-                        "受け取り日: " + replaceAll(date, "-", "/");
+                    let text = "お申し込み";
 
                     // トーク画面にメッセージを送信します。
                     liff.sendMessages([{
@@ -96,6 +92,105 @@
                     }).catch(function (error) {
                         window.alert('エラー送信: ' + error);
                     });
+                }
+            });
+            document.getElementsByName("date")[0].addEventListener('change', async function (e) {
+                const { value } = e.target;
+                const [year, month, date] = value.split("/");
+                const bookingData = await database
+                    .collection("booking")
+                    .doc(year + "-" + month)
+                    .get();
+                const available = [];
+                if (bookingData.exists) {
+                    const day = parseInt(date, 10);
+                    const currentData = bookingData.data().max[day - 1];
+                    const today = new Date(new Date().getTime());
+                    if (day === today.getDate()) {
+                        // 30分後に受付開始
+                        const open = today.setMinutes(
+                            Math.round(today.getMinutes() / 15) * 15 + 30
+                        );
+                        const h = ("00" + new Date(open).getHours()).slice(-2);
+                        const M = ("00" + new Date(open).getMinutes()).slice(-2);
+                        // 11:30-14:15
+                        [...Array(12)].map((_, i) => {
+                            const date = new Date();
+                            date.setHours(11);
+                            date.setMinutes(30);
+                            const _date = new Date(date).setMinutes(
+                                new Date(date).getMinutes() + i * 15
+                            );
+                            const hh = ("00" + new Date(_date).getHours()).slice(-2);
+                            const MM = ("00" + new Date(_date).getMinutes()).slice(-2);
+                            if (
+                                h + ":" + M <= hh + ":" + MM &&
+                                currentData[hh + "時台"][1] > 0
+                            ) {
+                                available.push(hh + ":" + MM);
+                            }
+                        });
+                        // 17:30-21:30
+                        [...Array(17)].map((_, i) => {
+                            const date = new Date();
+                            date.setHours(17);
+                            date.setMinutes(30);
+                            const _date = new Date(date).setMinutes(
+                                new Date(date).getMinutes() + i * 15
+                            );
+                            const hh = ("00" + new Date(_date).getHours()).slice(-2);
+                            const MM = ("00" + new Date(_date).getMinutes()).slice(-2);
+                            if (
+                                h + ":" + M <= hh + ":" + MM &&
+                                currentData[hh + "時台"][1] > 0
+                            ) {
+                                available.push(hh + ":" + MM);
+                            }
+                        });
+                    } else {
+                        // 11:30-14:15
+                        [...Array(12)].map((_, i) => {
+                            const date = new Date();
+                            date.setHours(11);
+                            date.setMinutes(30);
+                            const _date = new Date(date).setMinutes(
+                                new Date(date).getMinutes() + i * 15
+                            );
+                            const hh = ("00" + new Date(_date).getHours()).slice(-2);
+                            const MM = ("00" + new Date(_date).getMinutes()).slice(-2);
+                            if (currentData[hh + "時台"][1] > 0) {
+                                available.push(hh + ":" + MM);
+                            }
+                        });
+                        // 17:30-21:30
+                        [...Array(17)].map((_, i) => {
+                            const date = new Date();
+                            date.setHours(17);
+                            date.setMinutes(30);
+                            const _date = new Date(date).setMinutes(
+                                new Date(date).getMinutes() + i * 15
+                            );
+                            const hh = ("00" + new Date(_date).getHours()).slice(-2);
+                            const MM = ("00" + new Date(_date).getMinutes()).slice(-2);
+                            if (currentData[hh + "時台"][1] > 0) {
+                                available.push(hh + ":" + MM);
+                            }
+                        });
+                    }
+                }
+                // 要素を追加
+                const timeElem = document.getElementsByName("time")[0];
+                while (timeElem.firstChild) {
+                    timeElem.removeChild(timeElem.firstChild)
+                }
+                const timeOption = document.createElement("option");
+                timeOption.text = "時間を選択";
+                timeElem.appendChild(timeOption);
+                for (let i = 0; i < available.length; i++) {
+                    const timeOption = document.createElement("option");
+                    timeOption.text = available[i];
+                    timeOption.value = available[i];
+                    timeElem.appendChild(timeOption);
                 }
             });
         };
@@ -124,6 +219,52 @@
                 });
         }
 
+        async function addDate() {
+            // 予約データを取得
+            const min = zeroPadding(new Date().toLocaleDateString());
+            let [year, month, date] = min.split("-");
+            const bookingData = await database
+                .collection("booking")
+                .doc(year + "-" + month)
+                .get();
+            const available = [];
+            if (bookingData.exists) {
+                const arr = bookingData.data().stop;
+                const _date = parseInt(date, 10);
+                arr.slice(_date - 1, _date + 6).forEach((flag, i) => !flag && available.push(year + "/" + month + "/" + (_date + i)));
+            }
+            if (available.length < 6) {
+                if (month < 12) {
+                    month = parseInt(month) + 1;
+                } else {
+                    year = parseInt(year) + 1;
+                    month = 1;
+                }
+                const bookingData = await database
+                    .collection("booking")
+                    .doc(year + "-" + ("00" + month).slice(-2))
+                    .get();
+
+                if (bookingData.exists) {
+                    const arr = bookingData.data().stop;
+                    let _date = 1;
+                    while (available.length < 6) {
+                        const flag = arr.shift();
+                        if (!flag) available.push(year + "/" + month + "/" + _date);
+                        _date += 1;
+                    }
+                }
+            }
+            // 要素を追加
+            const dateElem = document.getElementsByName("date")[0];
+            for (let i = 0; i < available.length; i++) {
+                const dateOption = document.createElement("option");
+                dateOption.text = available[i];
+                dateOption.value = available[i];
+                dateElem.appendChild(dateOption)
+            }
+        }
+        
         function replaceAll(str, beforeStr, afterStr) {
             var reg = new RegExp(beforeStr, "g");
             return str.replace(reg, afterStr);
@@ -150,9 +291,15 @@
                 <input id="number" type="tel" class="form-control" name="number" required="required" />
             </div>
             <div class="form-group">
-                <label for="date">受け取り日時</label>
-                <input id="date" type="date" name="date" class="form-control" placeholder="日付を入力して下さい" min="1" max="10"
-                    required="required" />
+                <label>受け取り日時</label>
+                <div class="f-container">
+                    <select name="date" required="required" class="styled-select">
+                        <option value="">日付を選択</option>
+                    </select>
+                    <select name="time" required="required" class="styled-select">
+                        <option value="">時間を選択</option>
+                    </select>
+                </div>
             </div>
             <button id="send" class="btn btn-primary btn-lg btn-block" type="button">申込</button>
         </form>

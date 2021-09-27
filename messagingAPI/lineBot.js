@@ -4,9 +4,12 @@ const line = require("@line/bot-sdk");
 
 const firebase = require("firebase");
 require("firebase/firestore");
+require("firebase/storage");
 
 const menuData = require("./menuData");
 const database = firebase.firestore();
+const storageRef = firebase.storage().ref();
+global.XMLHttpRequest = require("xhr2");
 
 const config = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN || "test",
@@ -14,6 +17,8 @@ const config = {
 };
 
 const base_url = process.env.BASE_URL;
+// 特商法表記
+const commerceLiff = "https://liff.line.me/" + process.env.COMMERCE_LIFF_ID;
 const client = new line.Client(config);
 var index = 1;
 
@@ -36,212 +41,25 @@ async function handleEvent(event, session) {
     .get();
 
   if (event.type === "message") {
-    if (event.message.text.substring(0, 5) === "お申し込み") {
-      const userdata = await database
-        .collection("user")
-        .doc(event.source.userId)
-        .get();
-      if (userdata.exists) {
-        const [year, month, date] = userdata.data().reservationDate.split("-");
-        const bookingData = await database
-          .collection("booking")
-          .doc(year + "-" + month)
-          .get();
-        if (bookingData.exists) {
-          const _data = bookingData.data();
-          const day = parseInt(date, 10);
-          const currentData = _data.max[day - 1];
-          const timezoneBooking = Object.values(currentData).map(
-            (item) => item[1]
-          );
-          const today = new Date(new Date().getTime() + 3600000 * 9);
-
-          let arr = [];
-          if (day === today.getDate()) {
-            // 30分後に受付開始
-            const open = today.setMinutes(
-              Math.round(today.getMinutes() / 15) * 15 + 30
-            );
-            const h = ("00" + new Date(open).getHours()).slice(-2);
-            const M = ("00" + new Date(open).getMinutes()).slice(-2);
-            // 11:30-14:15
-            [...Array(12)].map((_, i) => {
-              const date = new Date();
-              date.setHours(11);
-              date.setMinutes(30);
-              const _date = new Date(date).setMinutes(
-                new Date(date).getMinutes() + i * 15
-              );
-              const hh = ("00" + new Date(_date).getHours()).slice(-2);
-              const MM = ("00" + new Date(_date).getMinutes()).slice(-2);
-              if (
-                h + ":" + M <= hh + ":" + MM &&
-                currentData[hh + "時台"][1] > 0
-              ) {
-                arr.push(hh + ":" + MM);
-              }
-            });
-            arr.push("dummy");
-            // 17:30-21:30
-            [...Array(17)].map((_, i) => {
-              const date = new Date();
-              date.setHours(17);
-              date.setMinutes(30);
-              const _date = new Date(date).setMinutes(
-                new Date(date).getMinutes() + i * 15
-              );
-              const hh = ("00" + new Date(_date).getHours()).slice(-2);
-              const MM = ("00" + new Date(_date).getMinutes()).slice(-2);
-              if (
-                h + ":" + M <= hh + ":" + MM &&
-                currentData[hh + "時台"][1] > 0
-              ) {
-                arr.push(hh + ":" + MM);
-              }
-            });
-          } else {
-            // 11:30-14:15
-            [...Array(12)].map((_, i) => {
-              const date = new Date();
-              date.setHours(11);
-              date.setMinutes(30);
-              const _date = new Date(date).setMinutes(
-                new Date(date).getMinutes() + i * 15
-              );
-              const hh = ("00" + new Date(_date).getHours()).slice(-2);
-              const MM = ("00" + new Date(_date).getMinutes()).slice(-2);
-              if (currentData[hh + "時台"][1] > 0) {
-                arr.push(hh + ":" + MM);
-              }
-            });
-            arr.push("dummy");
-            // 17:30-21:30
-            [...Array(17)].map((_, i) => {
-              const date = new Date();
-              date.setHours(17);
-              date.setMinutes(30);
-              const _date = new Date(date).setMinutes(
-                new Date(date).getMinutes() + i * 15
-              );
-              const hh = ("00" + new Date(_date).getHours()).slice(-2);
-              const MM = ("00" + new Date(_date).getMinutes()).slice(-2);
-              if (currentData[hh + "時台"][1] > 0) {
-                arr.push(hh + ":" + MM);
-              }
-            });
-          }
-
-          if (arr.length >= 2) {
-            const lunch = arr.splice(0, arr.indexOf("dummy"));
-            arr.splice(0, 1);
-
-            const buttons = lunch.map((item) => {
-              return {
-                type: "button",
-                style: "primary",
-                action: {
-                  type: "postback",
-                  label: item,
-                  data:
-                    "action=pay&arrival=" +
-                    userdata.data().reservationDate +
-                    " " +
-                    item,
-                  displayText: "来店希望時間: " + item,
-                },
-              };
-            });
-
-            const buttons2 = arr.map((item) => {
-              return {
-                type: "button",
-                style: "primary",
-                action: {
-                  type: "postback",
-                  label: item,
-                  data:
-                    "action=pay&arrival=" +
-                    userdata.data().reservationDate +
-                    " " +
-                    item,
-                  displayText: "来店希望時間: " + item,
-                },
-              };
-            });
-
-            echo = {
-              type: "flex",
-              altText: "来店希望時間",
-              contents: {
-                type: "bubble",
-                header: {
-                  type: "box",
-                  layout: "vertical",
-                  contents: [
-                    {
-                      type: "text",
-                      text: "来店希望時間を選択してください",
-                      size: "md",
-                      margin: "md",
-                      wrap: true,
-                    },
-                    {
-                      type: "separator",
-                      margin: "md",
-                    },
-                  ],
-                },
-                body: {
-                  type: "box",
-                  layout: "vertical",
-                  spacing: "sm",
-                  contents: [
-                    {
-                      type: "text",
-                      text: "ランチタイム",
-                      size: "md",
-                      margin: "md",
-                      wrap: true,
-                    },
-                    ...buttons,
-                    {
-                      type: "separator",
-                      margin: "xxl",
-                    },
-                    {
-                      type: "text",
-                      text: "ディナータイム",
-                      size: "md",
-                      margin: "md",
-                      wrap: true,
-                    },
-                    ...buttons2,
-                  ],
-                },
-              },
-            };
-          } else {
-            echo = {
-              type: "text",
-              text:
-                "申し訳ありませんが、" +
-                userdata.data().reservationDate +
-                "は、予約で埋まっているか、休業日です。別の日付を再度選択してください。",
-            };
-          }
-        } else {
-          console.log("No such document!");
-        }
-      } else {
-        console.log("No such document!");
-      }
-    } else if (event.message.text.substring(0, 4) === "メニュー") {
+    if (event.message.text.substring(0, 4) === "メニュー") {
       echo = {
         type: "flex",
         altText: "メニューを送信しました。",
         contents: {
           type: "carousel",
           contents: await getPlanCarousel(jsonData),
+        },
+        quickReply: {
+          items: [
+            {
+              type: "action",
+              action: {
+                type: "uri",
+                label: "特定商取引法に基づく表記はこちら",
+                uri: commerceLiff,
+              },
+            },
+          ],
         },
       };
     } else if (event.message.text.substring(0, 3) === "カート") {
@@ -250,6 +68,10 @@ async function handleEvent(event, session) {
         _data = cartData.data();
       } else {
         // doc.data() will be undefined in this case
+        echo = {
+          type: "text",
+          text: "エラー番号(200)。\n恐れ入りますが、店舗までエラー番号をご連絡ください。",
+        };
         console.log("No such document!");
       }
 
@@ -410,6 +232,24 @@ async function handleEvent(event, session) {
                   },
                 ],
               },
+              {
+                type: "box",
+                layout: "vertical",
+                margin: "md",
+                contents: [
+                  {
+                    type: "button",
+                    style: "link",
+                    adjustMode: "shrink-to-fit",
+                    margin: "xs",
+                    action: {
+                      type: "uri",
+                      label: "特定商取引法に基づく表記はこちら",
+                      uri: commerceLiff,
+                    },
+                  },
+                ],
+              },
             ],
           },
           footer: {
@@ -439,18 +279,173 @@ async function handleEvent(event, session) {
           },
         },
       };
+    } else if (event.message.text.substring(0, 5) === "お申し込み") {
+      var price = "";
+      if (cartData.exists) {
+        price = cartData.data().planPrice;
+      } else {
+        // doc.data() will be undefined in this case
+        echo = {
+          type: "text",
+          text: "エラー番号(300)。\n恐れ入りますが、店舗までエラー番号をご連絡ください。",
+        };
+        console.log("No such document!");
+      }
+      var arrival = "";
+      const userData = await database
+        .collection("user")
+        .doc(event.source.userId)
+        .get();
+      if (userData.exists) {
+        arrival = userData.data().reservationTime;
+      }
+      if (price === "" || arrival === "") {
+        echo = {
+          type: "text",
+          text: "申し訳ありませんが、お返事できません。",
+        };
+      } else {
+        // 申し込み内容確認のflex
+        echo = {
+          type: "flex",
+          altText: "お支払い内容を送信しました。",
+          contents: {
+            type: "bubble",
+            header: {
+              type: "box",
+              layout: "vertical",
+              contents: [
+                {
+                  type: "text",
+                  text: "エッコ・エッコ上野店",
+                  weight: "bold",
+                  color: "#1DB446",
+                  size: "sm",
+                },
+                {
+                  type: "text",
+                  text: "お支払い代金",
+                  weight: "bold",
+                  size: "xl",
+                  margin: "md",
+                },
+                {
+                  type: "separator",
+                  margin: "xxl",
+                },
+                {
+                  type: "box",
+                  layout: "vertical",
+                  margin: "xxl",
+                  spacing: "sm",
+                  contents: [
+                    {
+                      type: "text",
+                      text: price,
+                    },
+                  ],
+                },
+                {
+                  type: "box",
+                  layout: "vertical",
+                  margin: "xxl",
+                  spacing: "sm",
+                  contents: [],
+                },
+                {
+                  type: "text",
+                  text: "受け取り時間",
+                  weight: "bold",
+                  size: "xl",
+                  margin: "md",
+                },
+                {
+                  type: "separator",
+                  margin: "xxl",
+                },
+                {
+                  type: "box",
+                  layout: "vertical",
+                  margin: "xxl",
+                  spacing: "sm",
+                  contents: [
+                    {
+                      type: "text",
+                      text: arrival,
+                    },
+                  ],
+                },
+              ],
+            },
+            footer: {
+              type: "box",
+              layout: "vertical",
+              spacing: "sm",
+              contents: [
+                {
+                  type: "button",
+                  style: "primary",
+                  action: {
+                    type: "uri",
+                    label: "LINE Payでお支払い",
+                    uri:
+                      "https://liff.line.me/" +
+                      process.env.LINEPAY_LIFF_ID +
+                      "?userid=" +
+                      event.source.userId,
+                  },
+                },
+                // {
+                //   type: "button",
+                //   style: "primary",
+                //   color: "#fe0034",
+                //   action: {
+                //     type: "uri",
+                //     label: "PayPayでお支払い",
+                //     uri:
+                //       "https://liff.line.me/" +
+                //       process.env.PAYPAY_LIFF_ID +
+                //       "?userid=" +
+                //       event.source.userId,
+                //   },
+                // },
+                {
+                  type: "box",
+                  layout: "horizontal",
+                  spacing: "md",
+                  contents: [
+                    {
+                      type: "text",
+                      text: "※お支払い後のキャンセル対応は行っておりません。ご了承ください",
+                      size: "md",
+                      weight: "bold",
+                      wrap: true,
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        };
+      }
     } else {
       echo = { type: "text", text: "申し訳ありませんが、お返事できません。" };
     }
   } else if (event.type === "follow") {
-    echo = {
-      type: "flex",
-      altText: "メニューを送信しました。",
-      contents: {
-        type: "carousel",
-        contents: await getPlanCarousel(jsonData),
+    echo = [
+      {
+        type: "text",
+        text: "メニューはこちらです",
       },
-    };
+      {
+        type: "flex",
+        altText: "メニューを送信しました。",
+        contents: {
+          type: "carousel",
+          contents: await getPlanCarousel(jsonData),
+        },
+      },
+    ];
   } else if (event.type === "postback") {
     // 埋め込みデータ取得
     const data = new URLSearchParams(event.postback.data);
@@ -459,7 +454,7 @@ async function handleEvent(event, session) {
     const planid = data.get("planId");
     const initialize = data.get("initialize");
     const orderCount = parseInt(data.get("orderCount"), 10);
-    const arrival = data.get("arrival");
+
     // プランデータ申込（選択1 注文数、選択2 大盛り選択、選択3 半熟たまご）
     if (action === "orderCount") {
       echo = [
@@ -1020,132 +1015,6 @@ async function handleEvent(event, session) {
           },
         },
       };
-    } else if (action === "pay") {
-      var price = "";
-      if (cartData.exists) {
-        price = cartData.data().planPrice;
-      } else {
-        // doc.data() will be undefined in this case
-        console.log("No such document!");
-      }
-      await database.collection("user").doc(event.source.userId).update({
-        reservationTime: arrival,
-      });
-      if (price === "") {
-        echo = {
-          type: "text",
-          text: "申し訳ありませんが、お返事できません。",
-        };
-      } else {
-        // 申し込み内容確認のflex
-        echo = {
-          type: "flex",
-          altText: "お支払い内容を送信しました。",
-          contents: {
-            type: "bubble",
-            header: {
-              type: "box",
-              layout: "vertical",
-              contents: [
-                {
-                  type: "text",
-                  text: "エッコ・エッコ上野店",
-                  weight: "bold",
-                  color: "#1DB446",
-                  size: "sm",
-                },
-                {
-                  type: "text",
-                  text: "お支払い代金",
-                  weight: "bold",
-                  size: "xl",
-                  margin: "md",
-                },
-                {
-                  type: "separator",
-                  margin: "xxl",
-                },
-                {
-                  type: "box",
-                  layout: "vertical",
-                  margin: "xxl",
-                  spacing: "sm",
-                  contents: [
-                    {
-                      type: "text",
-                      text: price,
-                    },
-                  ],
-                },
-                {
-                  type: "box",
-                  layout: "vertical",
-                  margin: "xxl",
-                  spacing: "sm",
-                  contents: [],
-                },
-                {
-                  type: "text",
-                  text: "受け取り時間",
-                  weight: "bold",
-                  size: "xl",
-                  margin: "md",
-                },
-                {
-                  type: "separator",
-                  margin: "xxl",
-                },
-                {
-                  type: "box",
-                  layout: "vertical",
-                  margin: "xxl",
-                  spacing: "sm",
-                  contents: [
-                    {
-                      type: "text",
-                      text: arrival,
-                    },
-                  ],
-                },
-              ],
-            },
-            footer: {
-              type: "box",
-              layout: "vertical",
-              spacing: "sm",
-              contents: [
-                {
-                  type: "button",
-                  style: "primary",
-                  action: {
-                    type: "uri",
-                    label: "お支払い",
-                    uri:
-                      "https://liff.line.me/" +
-                      process.env.LINEPAY_LIFF_ID +
-                      "?userid=" +
-                      event.source.userId,
-                  },
-                },
-                {
-                  type: "box",
-                  layout: "horizontal",
-                  spacing: "md",
-                  contents: [
-                    {
-                      type: "text",
-                      text: "※お支払い後のキャンセル対応は行っておりません。ご了承ください",
-                      size: "md",
-                      weight: "bold",
-                      wrap: true,
-                    },
-                  ],
-                },
-              ],
-            },
-          },
-        };
-      }
       // クイックリプライ
     } else if (action === "questionnaire") {
       if (result === "yes") {
@@ -1229,12 +1098,14 @@ const getPlanJson = (data) => {
   const planLiff =
     "https://liff.line.me/" + process.env.PLAN_LIFF_ID + "/?planId=" + data.id;
   // jsonデータからプランを取得
+  const url =
+    "https://storage.googleapis.com/eccoecco-line-takeout.appspot.com";
   return {
     type: "bubble",
     size: "kilo",
     hero: {
       type: "image",
-      url: base_url + data.imageUrl,
+      url: url + data.imageUrl,
       size: "full",
       aspectRatio: "4:3",
       aspectMode: "cover",
