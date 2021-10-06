@@ -19,6 +19,7 @@
         
         $.get("/api/plan?id=" + planId, function (data) {
           const plan = data.plan;
+          console.log(plan);
           $("#placeImg").attr("src", plan.imageUrl);
           $("#name").text(plan.name);
         //   $("#place").text(plan.place);

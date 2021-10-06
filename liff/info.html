@@ -63,12 +63,13 @@
                 var number = $("input[name='number']").val();
                 var date = $("select[name='date']").val();
                 var time = $("select[name='time']").val();
+                var policy = $("input[name='policy']").prop('checked');
                 const regex = /^0\d{9,10}$/;
                 // LIFFアプリをLINE内ブラウザで動作させているかどうかを取得します。
                 if (!liff.isInClient()) {
                     window.alert('LIFFは現在外部ブラウザで開いているため、このボタンは使用できません。');
-                } else if (!name || !number || !date || !time || time === "時間を選択") {
-                    window.alert('全てに入力をお願いします。');
+                } else if (!name || !number || !date || !time || time === "時間を選択" || !policy) {
+                    window.alert('全てに入力とチェックをお願いします。');
                 } else if (!regex.test(number.replace(/[━.*‐.*―.*－.*\-.*ー.*\-]/gi, ''))) {
                     window.alert('正しい携帯番号（電話番号）を入力してください');
                 } else {
@@ -193,6 +194,9 @@
                     timeElem.appendChild(timeOption);
                 }
             });
+            $("#acMenu dt").on("click", function () {
+                $(this).next().slideToggle();
+            });
         };
 
         function initializeLiff(myLiffId) {
@@ -300,6 +304,60 @@
                         <option value="">時間を選択</option>
                     </select>
                 </div>
+            </div>
+            <div class="form-group">
+                <input id="policy" type="checkbox" name="policy" required="required"
+                    style="width: calc(1.5em + .75rem + 2px); height: calc(1.5em + .75rem + 2px);" />
+                <label>
+                    <dl id="acMenu">
+                        <dt>プライバシーポリシーに同意する（タップで開示）</dt>
+                        <dd>
+                            <p>株式会社C4PLANNINGは、 個人情報保護の重要性に鑑み、「個人情報の保護に関する法律」及び本プライバシーポリシーを遵守し、お客さまのプライバシー保護に努めます。</p>
+                            <h4>個人情報保護方針</h4>
+                            <table class="commerce">
+                                <tr>
+                                    <th>個人情報の管理</th>
+                                    <td>
+                                        当社は、お客さまの個人情報を正確かつ最新の状態に保ち、個人情報への不正アクセス・紛失・破損・改ざん・漏洩などを防止するため、セキュリティシステムの維持・管理体制の整備・社員教育の徹底等の必要な措置を講じ、安全対策を実施し個人情報の厳重な管理を行ないます。
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>個人情報の利用目的</th>
+                                    <td>
+                                        当サービスでは、お客さまのテイクアウトオーダーをお受けした際に、お名前（ハンドルネーム）、携帯電話番号の個人情報をご登録いただきます。お名前（ハンドルネーム）はお受け取り時に、また携帯電話番号は、ご注文からお受け取りまでに万が一不測の事態が発生した場合にのみ利用させていただくものであり、個人情報をご提供いただく際の目的以外では利用いたしません。
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>個人情報の第三者への開示・提供の禁止</th>
+                                    <td>当社は、お客さまよりお預かりした個人情報を適切に管理し、次のいずれかに該当する場合を除き、個人情報を第三者に開示いたしません。
+                                        <ul>
+                                            <li>お客さまの同意がある場合</li>
+                                            <li>お客さまが希望されるサービスを行なうために当社が業務を委託する業者に対して開示する場合</li>
+                                            <li>法令に基づき開示することが必要である場合</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>個人情報の安全対策</th>
+                                    <td>当社は、個人情報の正確性及び安全性確保のために、セキュリティに万全の対策を講じています。</td>
+                                </tr>
+                                <tr>
+                                    <th>法令、規範の遵守と見直し</th>
+                                    <td>当社は、保有する個人情報に関して適用される日本の法令、その他規範を遵守するとともに、本ポリシーの内容を適宜見直し、その改善に努めます。</td>
+                                </tr>
+                                <tr>
+                                    <th>お問い合せ</th>
+                                    <td>当社の個人情報の取扱に関するお問い合せは下記までご連絡ください。
+                                        <p>株式会社C4PLANNING</p>
+                                        <p>〒1030002 東京都中央区日本橋馬喰町１－５－１馬喰町有楽ビル５F</p>
+                                        <p>Tel:0362648167</p>
+                                        <p>Mail:infoc4[at]c4planning.co.jp (※[at]は@に置き換えて下さい）</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </dd>
+                    </dl>
+                </label>
             </div>
             <button id="send" class="btn btn-primary btn-lg btn-block" type="button">申込</button>
         </form>

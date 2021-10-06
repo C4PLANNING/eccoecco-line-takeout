@@ -42,21 +42,74 @@ async function handleEvent(event, session) {
 
   if (event.type === "message") {
     if (event.message.text.substring(0, 4) === "メニュー") {
+      // 2021-10-02新規
+      //　タイプ毎にメニュー表示に反抗
       echo = {
-        type: "flex",
-        altText: "メニューを送信しました。",
-        contents: {
-          type: "carousel",
-          contents: await getPlanCarousel(jsonData),
-        },
+        type: "text",
+        text: "お好きなタイプを選択してください",
         quickReply: {
           items: [
             {
               type: "action",
               action: {
-                type: "uri",
-                label: "特定商取引法に基づく表記はこちら",
-                uri: commerceLiff,
+                type: "postback",
+                label: "あっさり塩味系",
+                data: "action=menuByType&menuType=Lightly_Salty",
+                displayText: "あっさり塩味系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "バジルソース系",
+                data: "action=menuByType&menuType=Basil_Sauce",
+                displayText: "バジルソース系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "トマト系",
+                data: "action=menuByType&menuType=Tomato",
+                displayText: "トマト系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "ナポリタン系",
+                data: "action=menuByType&menuType=Neapolitan",
+                displayText: "ナポリタン系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "和風しょうゆ系",
+                data: "action=menuByType&menuType=Japanese_Flavor",
+                displayText: "和風しょうゆ系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "クリーム系",
+                data: "action=menuByType&menuType=Cream",
+                displayText: "クリーム系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "たらこ系",
+                data: "action=menuByType&menuType=Tarako",
+                displayText: "たらこ系",
               },
             },
           ],
@@ -302,7 +355,7 @@ async function handleEvent(event, session) {
       if (price === "" || arrival === "") {
         echo = {
           type: "text",
-          text: "申し訳ありませんが、お返事できません。",
+          text: "カートが空か、時間の指定が無効です。再度お試しください。",
         };
       } else {
         // 申し込み内容確認のflex
@@ -438,11 +491,74 @@ async function handleEvent(event, session) {
         text: "メニューはこちらです",
       },
       {
-        type: "flex",
-        altText: "メニューを送信しました。",
-        contents: {
-          type: "carousel",
-          contents: await getPlanCarousel(jsonData),
+        type: "text",
+        text: "お好きなタイプを選択してください",
+        quickReply: {
+          items: [
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "あっさり塩味系",
+                data: "action=menuByType&menuType=Lightly_Salty",
+                displayText: "あっさり塩味系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "バジルソース系",
+                data: "action=menuByType&menuType=Basil_Sauce",
+                displayText: "バジルソース系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "トマト系",
+                data: "action=menuByType&menuType=Tomato",
+                displayText: "トマト系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "ナポリタン系",
+                data: "action=menuByType&menuType=Neapolitan",
+                displayText: "ナポリタン系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "和風しょうゆ系",
+                data: "action=menuByType&menuType=Japanese_Flavor",
+                displayText: "和風しょうゆ系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "クリーム系",
+                data: "action=menuByType&menuType=Cream",
+                displayText: "クリーム系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "たらこ系",
+                data: "action=menuByType&menuType=Tarako",
+                displayText: "たらこ系",
+              },
+            },
+          ],
         },
       },
     ];
@@ -454,9 +570,90 @@ async function handleEvent(event, session) {
     const planid = data.get("planId");
     const initialize = data.get("initialize");
     const orderCount = parseInt(data.get("orderCount"), 10);
+    // 2021-10-02新規
+    //　タイプ毎にメニュー表示に反抗
+    const menuType = data.get("menuType");
 
+    if (action === "menuByType") {
+      echo = {
+        type: "flex",
+        altText: "メニューを送信しました。",
+        contents: {
+          type: "carousel",
+          contents: await getPlanCarousel(jsonData, menuType),
+        },
+
+        quickReply: {
+          items: [
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "あっさり塩味系",
+                data: "action=menuByType&menuType=Lightly_Salty",
+                displayText: "あっさり塩味系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "バジルソース系",
+                data: "action=menuByType&menuType=Basil_Sauce",
+                displayText: "バジルソース系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "トマト系",
+                data: "action=menuByType&menuType=Tomato",
+                displayText: "トマト系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "ナポリタン系",
+                data: "action=menuByType&menuType=Neapolitan",
+                displayText: "ナポリタン系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "和風しょうゆ系",
+                data: "action=menuByType&menuType=Japanese_Flavor",
+                displayText: "和風しょうゆ系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "クリーム系",
+                data: "action=menuByType&menuType=Cream",
+                displayText: "クリーム系",
+              },
+            },
+            {
+              type: "action",
+              action: {
+                type: "postback",
+                label: "たらこ系",
+                data: "action=menuByType&menuType=Tarako",
+                displayText: "たらこ系",
+              },
+            },
+          ],
+        },
+      };
+    }
     // プランデータ申込（選択1 注文数、選択2 大盛り選択、選択3 半熟たまご）
-    if (action === "orderCount") {
+    else if (action === "orderCount") {
       echo = [
         { type: "text", text: "注文数を選択してください" },
         {
@@ -1082,13 +1279,21 @@ async function handleEvent(event, session) {
   return client.replyMessage(event.replyToken, echo);
 }
 
-const getPlanCarousel = async (jsonData) => {
+const getPlanCarousel = async (jsonData, menuType) => {
   const planJsons = [];
-  const randomAry = await funcRandom(
-    jsonData.menu.filter((item) => item.id.length < 3)
-  );
-  for (let i = 0; i < Math.min(12, randomAry.length); i++) {
-    planJsons.push(getPlanJson(jsonData.menu[randomAry[i]]));
+  const arr = [];
+  if (menuType) {
+    jsonData.menu
+      .filter((item) => item.imageUrl.includes(menuType))
+      .filter((item) => item.id.length < 3)
+      .forEach((item) => arr.push(item));
+  } else {
+    jsonData.menu
+      .filter((item) => item.id.length < 3)
+      .forEach((item) => arr.push(item));
+  }
+  for (let i = 0; i < Math.min(12, arr.length); i++) {
+    planJsons.push(getPlanJson(arr[i]));
   }
   return planJsons;
 };
