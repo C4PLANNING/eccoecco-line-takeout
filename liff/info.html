@@ -232,12 +232,13 @@
                 .doc(year + "-" + month)
                 .get();
             const available = [];
+            const arr = bookingData.data().stop;
+            const _date = parseInt(date, 10);            
             if (bookingData.exists) {
-                const arr = bookingData.data().stop;
-                const _date = parseInt(date, 10);
                 arr.slice(_date - 1, _date + 6).forEach((flag, i) => !flag && available.push(year + "/" + month + "/" + (_date + i)));
             }
-            if (available.length < 6) {
+            // 1週間後が次の月            
+            if (arr.length < _date + 6 && available.length < 6) {
                 if (month < 12) {
                     month = parseInt(month) + 1;
                 } else {
