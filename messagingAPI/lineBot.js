@@ -1346,15 +1346,15 @@ const getPlanJson = (data) => {
       layout: "vertical",
       spacing: "sm",
       contents: [
-        {
-          type: "button",
-          style: "secondary",
-          action: {
-            type: "uri",
-            label: "詳細",
-            uri: planLiff,
-          },
-        },
+        // {
+        //   type: "button",
+        //   style: "secondary",
+        //   action: {
+        //     type: "uri",
+        //     label: "詳細",
+        //     uri: planLiff,
+        //   },
+        // },
         {
           type: "button",
           style: "primary",
