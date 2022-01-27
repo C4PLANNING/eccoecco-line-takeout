@@ -255,7 +255,7 @@
                     let _date = 1;
                     while (available.length < 6) {
                         const flag = arr.shift();
-                        if (!flag) available.push(year + "/" + month + "/" + _date);
+                        if (!flag) available.push(year + "/" + ("00" + month).slice(-2) + "/" + _date);
                         _date += 1;
                     }
                 }
