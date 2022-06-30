@@ -1,8 +1,7 @@
 {
-  "name": "clova-wedding-consulting-counter",
-  "description": "Clova Wedding Consulting Counter",
-  "version": "0.0.3",
-  "private": true,
+  "name": "eccoecco-takeout",
+  "description": "Line pay APIとLine Liffを活用したテイクアウトシステム",
+  "version": "1.0.1",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -10,7 +9,6 @@
   "dependencies": {
     "@google-cloud/datastore": "^5.1.0",
     "@line/bot-sdk": "^6.8.4",
-    "@line/clova-cek-sdk-nodejs": "^1.2.1",
     "bluebird": "^3.7.2",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",

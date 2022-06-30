@@ -1,11 +1,8 @@
-// const clova = require("@line/clova-cek-sdk-nodejs");
 const line = require("@line/bot-sdk");
 const express = require("express");
 const lineBot = require("./messagingAPI/lineBot");
 const linePayConfirm = require("./linepay/linePayConfirm");
 const linePayReserve = require("./linepay/linePayReserve");
-const planApi = require("./api/plan");
-// const clovaSkillHandler = require("./clova/clovaSkill");
 
 // LINE BOTの設定
 const config = {
@@ -16,16 +13,9 @@ const config = {
 const app = new express();
 const port = 8080;
 
-// Clova
-// const clovaMiddleware = clova.Middleware({ applicationId: process.env.EXTENSION_ID });
-// app.post("/clova", line.middleware(config), clovaSkillHandler);
-
 // LINE PAY
 app.get("/linepay/reserve", linePayReserve);
 app.use("/linepay/confirm", linePayConfirm);
-
-// API
-app.use("/api/plan", planApi);
 
 // LINE BOT
 app.post("/linebot", line.middleware(config), lineBot);
